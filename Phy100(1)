@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -----------------
+# พารามิเตอร์
+# -----------------
+a = 0.0001  # ความกว้างของช่องสลิต (เมตร)
+wavelength = 500e-9  # ความยาวคลื่นแสง (500 นาโนเมตร = สีเขียว)
+D = 1.0  # ระยะห่างจากช่องสลิตถึงฉาก (เมตร)
+I0 = 1.0  # ความเข้มแสงสูงสุดที่จุดศูนย์กลาง
+
+# -----------------
+# การคำนวณ
+# -----------------
+
+# สร้างช่วงของมุม (theta) หรือระยะทางบนฉาก (y)
+# ในที่นี้ใช้ระยะทางบนฉาก (y)
+y_max = 0.05  # ระยะสูงสุดบนฉากที่สนใจ (0.05 เมตร)
+num_points = 500
+y = np.linspace(-y_max, y_max, num_points)  # ตำแหน่งบนฉาก
+
+# คำนวณมุม theta สำหรับแต่ละจุดบนฉาก (สมมติว่ามุมมีค่าน้อย: sin(theta) ≈ y/D)
+theta = np.arctan(y / D)
+
+# คำนวณค่า beta
+beta = (np.pi * a / wavelength) * np.sin(theta)
+
+# คำนวณความเข้มแสง (Intensity)
+# หลีกเลี่ยงการหารด้วยศูนย์: เมื่อ beta = 0 ให้แทนค่า (sin(beta)/beta) = 1
+I = I0 * (np.sin(beta) / beta)**2
+# จัดการกรณี beta = 0 โดยตรง (เพื่อความแม่นยำทางคณิตศาสตร์)
+I[beta == 0] = I0 # np.sinc(x) ใน numpy จะจัดการกรณีนี้ให้เราแล้ว
+
+# -----------------
+# การแสดงผล (Plotting)
+# -----------------
+
+plt.figure(figsize=(10, 6))
+plt.plot(y * 1000, I, color='blue', label='Intensity Profile') # แปลงหน่วยเป็นมิลลิเมตร
+plt.title(f'Single Slit Diffraction Pattern (a={a*1e6:.0f} um, $\\lambda$={wavelength*1e9:.0f} nm)')
+plt.xlabel('Position on Screen (y) [mm]')
+plt.ylabel('Normalized Intensity (I/I0)')
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.axhline(0, color='black', linewidth=0.5)
+plt.axvline(0, color='red', linestyle=':', linewidth=0.5)
+plt.xlim(-y_max * 1000, y_max * 1000)
+plt.legend()
+plt.show()
+
+# พิมพ์ตำแหน่งมืดแรก (First minimum) เพื่อเปรียบเทียบ
+# ตำแหน่งมืดแรกเกิดเมื่อ sin(theta) = lambda / a
+first_minimum_sin_theta = wavelength / a
+y_min1 = D * first_minimum_sin_theta
+print(f"\nตำแหน่งมืดแรกบนฉาก (y) ≈ {y_min1*1000:.2f} มม.")
